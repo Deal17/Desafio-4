@@ -1,14 +1,32 @@
+const fs = require('fs');
+
 class ProductManager {
-    constructor(){
-        this.products = [];
+    constructor() {
+        this.fileName = 'productos.txt';
+        this.Products = [];
+        this.loadProducts();
+    }
+
+    loadProducts() {
+        try {
+            const data = fs.readFileSync(this.fileName, 'utf8');
+            this.Products = JSON.parse(data);
+        } catch (error) {
+            this.Products = [];
+        }
+    }
+
+    saveProducts() {
+        const data = JSON.stringify(this.Products, null, 2);
+        fs.writeFileSync(this.fileName, data, 'utf8');
     }
 
     getProducts = () => {
-        return this.products;
+        return this.Products;
     }
 
     addProduct = (title, description, price, thumbnail, code, stock) => {
-        const product = {
+        const Producto = {
             title,
             description,
             price,
@@ -16,82 +34,90 @@ class ProductManager {
             code,
             stock
         };
-        if (this.products.length === 0) {
-            product.id = 1;
+
+        if (this.Products.length === 0) {
+            Producto.id = 1;
         } else {
-            product.id = this.products[this.products.length - 1].id + 1;
+            Producto.id = this.Products[this.Products.length - 1].id + 1;
         }
-        this.products.push(product);
+
+        this.Products.push(Producto);
+        this.saveProducts();
     }
 
     getProductById = (id) => {
-        const product = this.products.find(product => product.id === id);
+        const product = this.Products.find((Product) => Product.id === id);
+
         if (product) {
             return product;
         } else {
-            throw new Error("Error: Producto no encontrado por el ID especificado.");
+            throw new Error("Producto no encontrado por el ID especificado");
         }
     }
 
     updateProduct = (id, updatedFields) => {
-        const productIndex = this.products.findIndex(product => product.id === id);
+        const productIndex = this.Products.findIndex((Product) => Product.id === id);
+
         if (productIndex !== -1) {
-            const updatedProduct = Object.assign({}, this.products[productIndex], updatedFields);
-            this.products[productIndex] = updatedProduct;
+            // Copiar el producto existente y aplicar las actualizaciones
+            const updatedProduct = { ...this.Products[productIndex], ...updatedFields };
+            this.Products[productIndex] = updatedProduct;
+            this.saveProducts();
         } else {
-            throw new Error("Error: Producto no encontrado por el ID especificado.");
+            throw new Error("Producto no encontrado por el ID especificado");
         }
     }
 
     deleteProduct = (id) => {
-        const productIndex = this.products.findIndex(product => product.id === id);
+        const productIndex = this.Products.findIndex((Product) => Product.id === id);
+
         if (productIndex !== -1) {
-            this.products.splice(productIndex, 1);
+            this.Products.splice(productIndex, 1);
+            this.saveProducts();
         } else {
-            throw new Error("Error: Producto no encontrado por el ID especificado.");
+            throw new Error("Producto no encontrado por el ID especificado");
         }
     }
 }
 
-const productManager = new ProductManager();
+const Product = new ProductManager();
 
 console.log("Ejecución Inicial");
-console.log(productManager.getProducts());
+console.log(Product.getProducts());
 
-console.log("Adicionando primer producto...");
-productManager.addProduct("Producto 1", "Descripción del producto 1", 100, "imagen1.jpg", "ABC123", 10);
+console.log("Adicionando primer objeto...");
+Product.addProduct("producto prueba 1", "Este es un producto prueba 1", 200, "Sin imagen", "abc123", 25);
 
-console.log("Adicionando segundo producto...");
-productManager.addProduct("Producto 2", "Descripción del producto 2", 150, "imagen2.jpg", "DEF456", 20);
+console.log("Adicionando segundo objeto...");
+Product.addProduct("producto prueba 2", "Este es un producto prueba 2", 300, "Sin imagen", "def456", 30);
 
-console.log("Consulta productos\n");
-console.log(productManager.getProducts());
+console.log("Consulta objetos");
+console.log(Product.getProducts());
 
-console.log("Consulta por ID (Producto con ID 1)\n");
+console.log("Consulta por ID");
 try {
-    console.log(productManager.getProductById(1));
+    const product = Product.getProductById(2);
+    console.log(product);
 } catch (error) {
     console.error(error.message);
 }
 
-console.log("Intentando actualizar producto con ID 2\n");
+console.log("Actualizar producto");
 try {
-    productManager.updateProduct(2, { price: 200, stock: 15 });
-    console.log("Producto actualizado con éxito.");
+    Product.updateProduct(1, { price: 250, stock: 20 });
+    console.log("Producto actualizado");
 } catch (error) {
     console.error(error.message);
 }
 
-console.log("Consulta productos después de la actualización\n");
-console.log(productManager.getProducts());
-
-console.log("Intentando eliminar producto con ID 3\n");
+console.log("Eliminar producto");
 try {
-    productManager.deleteProduct(3);
-    console.log("Producto eliminado con éxito.");
+    Product.deleteProduct(2);
+    console.log("Producto eliminado");
 } catch (error) {
     console.error(error.message);
 }
 
-console.log("Consulta productos después de la eliminación\n");
-console.log(productManager.getProducts());
+console.log("Consulta objetos después de actualizar y eliminar");
+console.log(Product.getProducts());
+
